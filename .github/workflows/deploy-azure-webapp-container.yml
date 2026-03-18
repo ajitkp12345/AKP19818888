@@ -1,4 +1,5 @@
 name: Deploy to Azure Web App (Container)
+
 on:
   workflow_dispatch:
     inputs:
@@ -8,13 +9,16 @@ on:
       image_tag:
         description: 'Container tag to deploy (e.g., latest or a commit SHA)'
         required: true
+
 permissions:
   contents: read
   packages: read
   id-token: write
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -25,6 +29,7 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Configure Web App to pull from GHCR
         uses: azure/CLI@v2
         with:
@@ -36,6 +41,7 @@ jobs:
               --docker-registry-server-url "https://ghcr.io" \
               --docker-registry-server-user "${{ github.actor }}" \
               --docker-registry-server-password "${{ secrets.GITHUB_TOKEN }}"
+
       - name: Restart Web App
         uses: azure/CLI@v2
         with:
