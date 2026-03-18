@@ -17,12 +17,18 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Compute lowercase image name
+        id: prep
+        run: |
+          IMAGE_NAME="${GITHUB_REPOSITORY,,}"
+          echo "image_name=$IMAGE_NAME" >> "$GITHUB_OUTPUT"
+          echo "Deploying image: $IMAGE_NAME:${{ github.event.inputs.image_tag }}"
+
       - name: Azure login
         uses: azure/login@v2
         with:
@@ -37,7 +43,7 @@ jobs:
             az webapp config container set \
               --name "${{ github.event.inputs.webapp_name }}" \
               --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
-              --docker-custom-image-name "ghcr.io/${{ github.repository }}:${{ github.event.inputs.image_tag }}" \
+              --docker-custom-image-name "ghcr.io/${{ steps.prep.outputs.image_name }}:${{ github.event.inputs.image_tag }}" \
               --docker-registry-server-url "https://ghcr.io" \
               --docker-registry-server-user "${{ github.actor }}" \
               --docker-registry-server-password "${{ secrets.GITHUB_TOKEN }}"
